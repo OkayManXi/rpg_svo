@@ -23,79 +23,90 @@
 #include <svo/reprojector.h>
 #include <svo/initialization.h>
 
-namespace svo {
+namespace svo
+{
 
 /// Monocular Visual Odometry Pipeline as described in the SVO paper.
 class FrameHandlerMono : public FrameHandlerBase
 {
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
-  FrameHandlerMono(vk::AbstractCamera* cam);
-  virtual ~FrameHandlerMono();
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  /// Provide an image.
-  void addImage(const cv::Mat& img, double timestamp);
+    FrameHandlerMono(vk::AbstractCamera *cam);
+    virtual ~FrameHandlerMono();
 
-  /// Set the first frame (used for synthetic datasets in benchmark node)
-  void setFirstFrame(const FramePtr& first_frame);
+    /// Provide an image.
+    void addImage(const cv::Mat &img, double timestamp);
 
-  /// Get the last frame that has been processed.
-  FramePtr lastFrame() { return last_frame_; }
+    /// Set the first frame (used for synthetic datasets in benchmark node)
+    void setFirstFrame(const FramePtr &first_frame);
 
-  /// Get the set of spatially closest keyframes of the last frame.
-  const set<FramePtr>& coreKeyframes() { return core_kfs_; }
+    /// Get the last frame that has been processed.
+    FramePtr lastFrame()
+    {
+        return last_frame_;
+    }
 
-  /// Return the feature track to visualize the KLT tracking during initialization.
-  const vector<cv::Point2f>& initFeatureTrackRefPx() const { return klt_homography_init_.px_ref_; }
-  const vector<cv::Point2f>& initFeatureTrackCurPx() const { return klt_homography_init_.px_cur_; }
+    /// Get the set of spatially closest keyframes of the last frame.
+    const set<FramePtr> &coreKeyframes()
+    {
+        return core_kfs_;
+    }
 
-  /// Access the depth filter.
-  DepthFilter* depthFilter() const { return depth_filter_; }
+    /// Return the feature track to visualize the KLT tracking during initialization.
+    const vector<cv::Point2f> &initFeatureTrackRefPx() const
+    {
+        return klt_homography_init_.px_ref_;
+    }
+    const vector<cv::Point2f> &initFeatureTrackCurPx() const
+    {
+        return klt_homography_init_.px_cur_;
+    }
 
-  /// An external place recognition module may know where to relocalize.
-  bool relocalizeFrameAtPose(
-      const int keyframe_id,
-      const SE3& T_kf_f,
-      const cv::Mat& img,
-      const double timestamp);
+    /// Access the depth filter.
+    DepthFilter *depthFilter() const
+    {
+        return depth_filter_;
+    }
 
-protected:
-  vk::AbstractCamera* cam_;                     //!< Camera model, can be ATAN, Pinhole or Ocam (see vikit).
-  Reprojector reprojector_;                     //!< Projects points from other keyframes into the current frame
-  FramePtr new_frame_;                          //!< Current frame.
-  FramePtr last_frame_;                         //!< Last frame, not necessarily a keyframe.
-  set<FramePtr> core_kfs_;                      //!< Keyframes in the closer neighbourhood.
-  vector< pair<FramePtr,size_t> > overlap_kfs_; //!< All keyframes with overlapping field of view. the paired number specifies how many common mappoints are observed TODO: why vector!?
-  initialization::KltHomographyInit klt_homography_init_; //!< Used to estimate pose of the first two keyframes by estimating a homography.
-  DepthFilter* depth_filter_;                   //!< Depth estimation algorithm runs in a parallel thread and is used to initialize new 3D points.
+    /// An external place recognition module may know where to relocalize.
+    bool relocalizeFrameAtPose(const int keyframe_id, const SE3 &T_kf_f, const cv::Mat &img, const double timestamp);
 
-  /// Initialize the visual odometry algorithm.
-  virtual void initialize();
+  protected:
+    vk::AbstractCamera *cam_;                     //!< Camera model, can be ATAN, Pinhole or Ocam (see vikit).
+    Reprojector reprojector_;                     //!< Projects points from other keyframes into the current frame
+    FramePtr new_frame_;                          //!< Current frame.
+    FramePtr last_frame_;                         //!< Last frame, not necessarily a keyframe.
+    set<FramePtr> core_kfs_;                      //!< Keyframes in the closer neighbourhood.
+    vector<pair<FramePtr, size_t>> overlap_kfs_;  //!< All keyframes with overlapping field of view. the paired number specifies how many common
+                                                  //!mappoints are observed TODO: why vector!?
+    initialization::KltHomographyInit klt_homography_init_;  //!< Used to estimate pose of the first two keyframes by estimating a homography.
+    DepthFilter *depth_filter_;  //!< Depth estimation algorithm runs in a parallel thread and is used to initialize new 3D points.
 
-  /// Processes the first frame and sets it as a keyframe.
-  virtual UpdateResult processFirstFrame();
+    /// Initialize the visual odometry algorithm.
+    virtual void initialize();
 
-  /// Processes all frames after the first frame until a keyframe is selected.
-  virtual UpdateResult processSecondFrame();
+    /// Processes the first frame and sets it as a keyframe.
+    virtual UpdateResult processFirstFrame();
 
-  /// Processes all frames after the first two keyframes.
-  virtual UpdateResult processFrame();
+    /// Processes all frames after the first frame until a keyframe is selected.
+    virtual UpdateResult processSecondFrame();
 
-  /// Try relocalizing the frame at relative position to provided keyframe.
-  virtual UpdateResult relocalizeFrame(
-      const SE3& T_cur_ref,
-      FramePtr ref_keyframe);
+    /// Processes all frames after the first two keyframes.
+    virtual UpdateResult processFrame();
 
-  /// Reset the frame handler. Implement in derived class.
-  virtual void resetAll();
+    /// Try relocalizing the frame at relative position to provided keyframe.
+    virtual UpdateResult relocalizeFrame(const SE3 &T_cur_ref, FramePtr ref_keyframe);
 
-  /// Keyframe selection criterion.
-  virtual bool needNewKf(double scene_depth_mean);
+    /// Reset the frame handler. Implement in derived class.
+    virtual void resetAll();
 
-  void setCoreKfs(size_t n_closest);
+    /// Keyframe selection criterion.
+    virtual bool needNewKf(double scene_depth_mean);
+
+    void setCoreKfs(size_t n_closest);
 };
 
-} // namespace svo
+}  // namespace svo
 
-#endif // SVO_FRAME_HANDLER_H_
+#endif  // SVO_FRAME_HANDLER_H_

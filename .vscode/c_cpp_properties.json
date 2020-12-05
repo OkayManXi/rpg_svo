@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/zty/myGit/SVO/devel/include/**",
+                "/opt/ros/kinetic/include/**",
+                "/home/zty/myGit/SVO/src/rpg_svo/svo/include/**",
+                "/home/zty/myGit/SVO/src/rpg_svo/svo_ros/include/**",
+                "/home/zty/myGit/SVO/src/rpg_vikit/vikit_common/include/**",
+                "/home/zty/myGit/SVO/src/rpg_vikit/vikit_ros/include/**",
+                "/usr/include/**",
+                "/home/zty/myGit/Sophus/**",
+                "/home/zty/myGit/fast/include/**"
+            ],
+            "name": "ROS"
+        }
+    ],
+    "version": 4
+}
